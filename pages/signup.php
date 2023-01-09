@@ -1,6 +1,7 @@
 <?php
 
-require "parts/header.php";
+session_start();
+require dirname(__DIR__)."/parts/header.php";
 
 ?>
     <div class="container my-5 mx-auto" style="max-width: 500px;">
@@ -60,4 +61,4 @@ require "parts/header.php";
 
     <?php
 
-require "parts/footer.php";
+require dirname(__DIR__)."/parts/footer.php";

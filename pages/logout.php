@@ -1,10 +1,11 @@
 <?php
 
-require "parts/header.php";
+session_start();
+require dirname(__DIR__)."/parts/header.php";
 
 ?>
 
 <?php
 
-require "parts/footer.php";
+require dirname(__DIR__)."/parts/footer.php";
 
