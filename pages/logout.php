@@ -1,11 +1,10 @@
 <?php
 
- 
-require dirname(__DIR__)."/parts/header.php";
+//make sure if user is logged in
+if( Authentication::isLoggedIn()){
+    //then only trigger logout function
+    Authentication::logout();
+}
 
-?>
-
-<?php
-
-require dirname(__DIR__)."/parts/footer.php";
-
+header('Location: /login');
+exit;

@@ -2,9 +2,12 @@
 
 session_start();
 
-$path=$_SERVER['REQUEST_URI'];
+//require all classes and functions file
+require "includes/class-db.php";
+require "includes/class-user.php";
+require "includes/class-authentication.php";
 
-$path = trim ($path,'/');
+$path = trim ($_SERVER['REQUEST_URI'],'/');
 $path = parse_url($path, PHP_URL_PATH);
 
 switch ($path){
