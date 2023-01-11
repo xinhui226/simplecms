@@ -12,12 +12,25 @@ class Authentication{
     */
     public static function login($email,$password)
     {
-        DB::connect()->select(
+        $user_id=false;
+        $user = DB::connect()->select(
             'SELECT * FROM users WHERE email= :email',
             [
                 'email'=>$email
             ]
         );
+
+        //if user is valid then return $user array
+        if($user){
+            //verify password
+            if(password_verify($password,$user['password']))
+            {
+                $user_id = $user['id'];
+            }
+        }
+
+        //make sure return user id in database
+        return $user_id;
     }
 
     /*
@@ -71,7 +84,8 @@ class Authentication{
         $_SESSION['user'] =[ 
             'id'=>$user['id'],
             'name'=>$user['name'],
-            'email'=>$user['email']
+            'email'=>$user['email'],
+            'role'=>$user['role']
         ];
     }
 
