@@ -24,11 +24,17 @@ class DB
     /*
     *Trigger select command
     */ 
-    public function select($sql,$data=[])
+    public function select($sql,$data=[],$is_list=false)
     {
         $statement=$this->db->prepare($sql);
         $statement->execute($data);
-        return $statement->fetch(PDO::FETCH_ASSOC);
+
+        if($is_list){
+            return $statement->fetchAll(PDO::FETCH_ASSOC);
+        }else{
+            return $statement->fetch(PDO::FETCH_ASSOC);
+        }
+
     }
 
     /*
@@ -47,17 +53,21 @@ class DB
     /*
     *Trigger update command
      */
-    public function update()
+    public function update($sql,$data=[])
     {
-
+        $statement = $this->db->prepare($sql);
+        $statement->execute($data);
+        return $statement->rowCount();
     }
 
     /*
     *Trigger delete command
     */
-    public function delete()
+    public function delete($sql,$data=[])
     {
-
+        $statement = $this->db->prepare($sql);
+        $statement->execute($data);
+        return $statement->rowCount();
     }
 
 }

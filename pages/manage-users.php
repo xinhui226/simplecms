@@ -1,5 +1,11 @@
 <?php
 
+//only admin can access
+if(!Authentication::whoCanAccess('admin'))
+ {
+  header('Location: /dashboard');
+  exit;
+ }
  
 require dirname(__DIR__)."/parts/header.php";
 
@@ -25,15 +31,25 @@ require dirname(__DIR__)."/parts/header.php";
             </tr>
           </thead>
           <tbody>
+          <?php foreach(User::getAllUsers() as $user) :?>
             <tr>
-              <th scope="row">3</th>
-              <td>Jack</td>
-              <td>jack@gmail.com</td>
-              <td><span class="badge bg-success">User</span></td>
+              <th scope="row"><?=$user['id']?></th>
+              <td><?=$user['name']?></td>
+              <td><?=$user['email']?></td>
+              <td>
+                <?php if($user['role']=='admin') : ?>
+                <span class="badge bg-primary"><?=ucwords($user['role'])?></span>
+                <?php elseif($user['role']=='editor') : ?>
+                <span class="badge bg-info"><?=ucwords($user['role'])?></span>
+                <?php elseif($user['role']=='user') : ?>
+                <span class="badge bg-secondary"><?=ucwords($user['role'])?></span>
+                <?php endif; ?>
+              </td>
               <td class="text-end">
+                <?php if($user['id']!=$_SESSION['user']['id'] && $user['role']!='admin'): ?>
                 <div class="buttons">
                   <a
-                    href="/manage-users-edit"
+                    href="/manage-users-edit?id=<?=$user['id']?>"
                     class="btn btn-success btn-sm me-2"
                     ><i class="bi bi-pencil"></i
                   ></a>
@@ -41,9 +57,11 @@ require dirname(__DIR__)."/parts/header.php";
                     ><i class="bi bi-trash"></i
                   ></a>
                 </div>
+                <?php endif; ?>
               </td>
             </tr>
-            <tr>
+            <?php endforeach; ?>
+            <!-- <tr>
               <th scope="row">2</th>
               <td>Jane</td>
               <td>jane@gmail.com</td>
@@ -78,7 +96,8 @@ require dirname(__DIR__)."/parts/header.php";
                   ></a>
                 </div>
               </td>
-            </tr>
+            </tr> -->
+
           </tbody>
         </table>
       </div>

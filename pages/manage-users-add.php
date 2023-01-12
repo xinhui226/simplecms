@@ -1,5 +1,10 @@
 <?php
 
+if(!Authentication::whoCanAccess('admin'))
+ {
+  header('Location: /dashboard');
+  exit;
+ }
  
 require dirname(__DIR__)."/parts/header.php";
 

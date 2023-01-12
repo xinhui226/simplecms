@@ -1,5 +1,55 @@
 <?php
 
+if(!Authentication::whoCanAccess('admin'))
+ {
+  header('Location: /dashboard');
+  exit;
+ }
+
+//get user's data
+$user = User::getUserById($_GET['id']);
+
+//step 1:set csrf token
+CSRF::generateToken('edit_user_form');
+
+//step 2:make sure post request
+if($_SERVER['REQUEST_METHOD']=='POST')
+{
+
+  //step 3:do error check
+    //if both password & confirm password are empty, skip error checking for both fields
+    $rules = [
+      'name'=>'required',
+      'email'=>'email_check',
+      'role'=>'required'
+    ];
+    //if either password or confirmpassword are not empty
+
+    $error = FormValidation::validate(
+      $_POST,
+      $rules
+    );
+
+    if(!$error)
+    {
+        //step 4:update user
+        User::update(
+          $user['id'],
+          $_POST['name'],
+          $_POST['email'],
+          $_POST['role']
+          //password update if available
+        );
+
+        //step 5:remove csrf token
+
+        //step 6:redirect to manage-users page
+        header('Location: /manage-users');
+        exit;
+    }//end- !$error
+
+}//end - if request-method is post
+
  
 require dirname(__DIR__)."/parts/header.php";
 
@@ -9,16 +59,17 @@ require dirname(__DIR__)."/parts/header.php";
         <h1 class="h1">Edit User</h1>
       </div>
       <div class="card mb-2 p-4">
-        <form>
+        <?php require dirname(__DIR__)."/parts/error_box.php";?>
+        <form action="<?= $_SERVER['REQUEST_URI']?>" method="POST">
           <div class="mb-3">
             <div class="row">
               <div class="col">
                 <label for="name" class="form-label">Name</label>
-                <input type="text" class="form-control" id="name" />
+                <input type="text" class="form-control" id="name" name="name" value="<?=$user['name']?>"/>
               </div>
               <div class="col">
                 <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" />
+                <input type="email" class="form-control" id="email" name="email" value="<?=$user['email']?>"/>
               </div>
             </div>
           </div>
@@ -26,7 +77,7 @@ require dirname(__DIR__)."/parts/header.php";
             <div class="row">
               <div class="col">
                 <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" />
+                <input type="password" class="form-control" id="password" name="password"/>
               </div>
               <div class="col">
                 <label for="confirm-password" class="form-label"
@@ -36,17 +87,17 @@ require dirname(__DIR__)."/parts/header.php";
                   type="password"
                   class="form-control"
                   id="confirm-password"
-                />
+                  name="confirm_password"/>
               </div>
             </div>
           </div>
           <div class="mb-3">
             <label for="role" class="form-label">Role</label>
-            <select class="form-control" id="role">
-              <option value="">Select an option</option>
-              <option value="user">User</option>
-              <option value="editor">Editor</option>
-              <option value="admin">Admin</option>
+            <select class="form-control" id="role" name="role">
+              <option selected disabled value="">Select an option</option>
+              <option value="user" <?=($user['role']=='user'? 'selected' : '') ?>)>User</option>
+              <option value="editor" <?=($user['role']=='editor'? 'selected' : '') ?>)>Editor</option>
+              <option value="admin" <?=($user['role']=='admin'? 'selected' : '') ?>)>Admin</option>
             </select>
           </div>
           <div class="d-grid">

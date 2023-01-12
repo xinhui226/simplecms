@@ -43,6 +43,15 @@ class FormValidation{
                         $error .= 'The field "'. $key . '" is empty<br>';
                     };
                     break;
+                case 'password_check' :
+                    if(empty($data[$key]))
+                    {
+                        $error .= 'The field "'. $key . '" is empty<br>';
+                    }elseif(strlen($data[$key])<8)
+                    {
+                        $error.='Password should be at least 8 characters<br>';
+                    }
+                    break;
                 case 'is_password_match' :
                     if($data['password']!=$data['confirm_password'])
                     {
@@ -57,6 +66,17 @@ class FormValidation{
                     {
                         $error .='Email format is invalid<br>';
                     }
+                    break;
+                //make sure csrf token is match
+                case 'login_form_csrf_token' :
+                    //$data[$key] = $_POST['csrf_token]
+                    if( !CSRF::verifyToken($data[$key],'login_form'))
+                    {
+                        die('Nice Try');
+                    }
+                    break;
+                case 'signup_form_csrf_token' :
+                    if(!CSRF::verifyToken($data[$key],'signup_form'))
                     break;
             } //end - foreach
         }

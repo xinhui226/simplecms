@@ -1,6 +1,7 @@
 <?php
 
  //set CSRF token
+ CSRF::generateToken('login_form');
 
  //make sure user is not login or else redirect to dashboard page
  if(Authentication::isLoggedIn()){
@@ -18,8 +19,10 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
   $error = FormValidation::validate(
     $_POST,
     [
-    'email'=>'required', //email is key, required is condition
-    'password'=>'required'
+  //'email' is key, 'required' is condition
+    'email'=>'required', 
+    'password'=>'required',
+    'csrf_token'=>'login_form_csrf_token'
    ]
   );
 
@@ -36,12 +39,12 @@ if($_SERVER['REQUEST_METHOD']=='POST'){
     $error = "Email or password is incorrect";
   }else{
     //$user_id is valid (id in database)
-    var_dump($user_id);
     //step 3:set user to session data $_SESSION['user']
     Authentication::setSession($user_id);
 
     //step 4:remove CSRF token & redirect user to dashboard page
         //4.1: remove CSRF token
+        CSRF::removeToken('login_form');
 
         //4.2: redirect to dashboard
         header('Location: /dashboard');
@@ -87,6 +90,7 @@ require dirname(__DIR__)."/parts/header.php";
           </div>
           <div class="d-grid">
             <button type="submit" class="btn btn-primary">Login</button>
+            <input type="hidden" name="csrf_token" value="<?= CSRF::getToken('login_form')?>">
           </div>
         </form>
       </div>
