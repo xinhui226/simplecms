@@ -17,18 +17,40 @@ if($_SERVER['REQUEST_METHOD']=='POST')
 {
 
   //step 3:do error check
+
+  //do a check if password & comfirmpassword filled or not
+  $is_password_changed =
+  (
+  isset($_POST['password'])&&!empty($_POST['password'])||
+  isset($_POST['confirm_password'])&&!empty($_POST['comfirm_password'])
+  ? true : false
+  );
+
     //if both password & confirm password are empty, skip error checking for both fields
     $rules = [
       'name'=>'required',
       'email'=>'email_check',
-      'role'=>'required'
+      'role'=>'required',
+      'csrf_token' =>'edit_user_form_csrf_token'
     ];
-    //if either password or confirmpassword are not empty
+
+    //if password is updated
+    if($is_password_changed){
+      $rules['password']='password_check';
+      $rules['confirm_password']= 'is_password_match';
+    }
 
     $error = FormValidation::validate(
       $_POST,
       $rules
     );
+
+    //if email changed, make sure it didn't exist
+    //we check for email changes
+    if($user['email']!==$_POST['email']){
+      //do error check to make sure no data exist
+      $error.=FormValidation::checkEmailUniqueness($_POST['email']);
+    }//end - $user['email] != $_POST['email]
 
     if(!$error)
     {
@@ -37,11 +59,13 @@ if($_SERVER['REQUEST_METHOD']=='POST')
           $user['id'],
           $_POST['name'],
           $_POST['email'],
-          $_POST['role']
+          $_POST['role'],
           //password update if available
+          ($is_password_changed? $_POST['password']:null)
         );
 
         //step 5:remove csrf token
+        CSRF::removeToken('edit_user_form');
 
         //step 6:redirect to manage-users page
         header('Location: /manage-users');
@@ -94,14 +118,15 @@ require dirname(__DIR__)."/parts/header.php";
           <div class="mb-3">
             <label for="role" class="form-label">Role</label>
             <select class="form-control" id="role" name="role">
-              <option selected disabled value="">Select an option</option>
-              <option value="user" <?=($user['role']=='user'? 'selected' : '') ?>)>User</option>
-              <option value="editor" <?=($user['role']=='editor'? 'selected' : '') ?>)>Editor</option>
-              <option value="admin" <?=($user['role']=='admin'? 'selected' : '') ?>)>Admin</option>
+              <option value="">Select an option</option>
+              <option value="user" <?=($user['role']=='user' ? 'selected' : '') ?>>User</option>
+              <option value="editor" <?=($user['role']=='editor' ? 'selected' : '') ?>>Editor</option>
+              <option value="admin" <?=($user['role']=='admin' ? 'selected' : '') ?>>Admin</option>
             </select>
           </div>
           <div class="d-grid">
             <button type="submit" class="btn btn-primary">Update</button>
+            <input type="hidden" name="csrf_token" value="<?=CSRF::getToken('edit_user_form')?>">
           </div>
         </form>
       </div>

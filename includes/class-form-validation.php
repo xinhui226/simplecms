@@ -77,7 +77,47 @@ class FormValidation{
                     break;
                 case 'signup_form_csrf_token' :
                     if(!CSRF::verifyToken($data[$key],'signup_form'))
+                    {
+                        die('Nice Try');
+                    }
                     break;
+                case 'edit_user_form_csrf_token' :
+                    if(!CSRF::verifyToken($data[$key],'edit_user_form'))
+                    {
+                        die('Nice Try');
+                    }
+                    break;
+                case 'add_user_form_csrf_token' :
+                    if(!CSRF::verifyToken($data[$key],'add_user_form'))
+                    {
+                        die('Nice Try');
+                    }
+                    break;
+                case 'delete_user_form_csrf_token' :
+                    if(!CSRF::verifyToken($data[$key],'delete_user_form'))
+                    {
+                        die('Nice Try');
+                    }
+                    break;
+                case 'edit_post_form_csrf_token' :
+                    if(!CSRF::verifyToken($data[$key],'edit_post_form'))
+                    {
+                        die('Nice Try');
+                    }
+                    break;
+                case 'add_post_form_csrf_token' :
+                    if(!CSRF::verifyToken($data[$key],'add_post_form'))
+                    {
+                        die('Nice Try');
+                    }
+                    break;
+                case 'delete_post_form_csrf_token' :
+                    if(!CSRF::verifyToken($data[$key],'delete_post_form'))
+                    {
+                        die('Nice Try');
+                    }
+                    break;
+                
             } //end - foreach
         }
 

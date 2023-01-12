@@ -1,6 +1,36 @@
 <?php
 
+if(!Authentication::whoCanAccess('user'))
+ {
+  header('Location: /login');
+  exit;
+ }
  
+ CSRF::generateToken('delete_post_form');
+
+ if($_SERVER['REQUEST_METHOD']=="POST"){
+
+  $error = FormValidation::validate(
+    $_POST,
+    [
+      'postid'=>'required',
+      'csrf_token'=>'delete_post_form_csrf_token'
+      ]
+  );
+
+  if(!$error){
+    Post::delete(
+      $_POST['postid']
+    );
+
+    CSRF::removeToken('delete_post_form');
+
+    header('Location: /manage-posts');
+    exit;
+  }//end -if (!$error)
+  
+
+ }// end - $_SERVER['REQEUST_METHOD']
 
 require dirname(__DIR__)."/parts/header.php";
 
@@ -14,6 +44,7 @@ require dirname(__DIR__)."/parts/header.php";
           >
         </div>
       </div>
+      <?php require dirname(__DIR__)."/parts/error_box.php" ?>
       <div class="card mb-2 p-4">
         <table class="table">
           <thead>
@@ -25,121 +56,60 @@ require dirname(__DIR__)."/parts/header.php";
             </tr>
           </thead>
           <tbody>
+            <?php foreach(Post::getAllPosts() as $post): ?>
+              <?php if(Authentication::whoCanAccess('editor')||$post['user_id']==$_SESSION['user']['id']) : ?>
             <tr>
-              <th scope="row">5</th>
-              <td>Post 5</td>
-              <td><span class="badge bg-warning">Pending Review</span></td>
+              <th scope="row"><?=$post['id']?></th>
+              <td><?=$post['title']?></td>
+              <td><span class="badge <?=($post['status']=="pending"?'bg-warning':'bg-success')?>"><?=($post['status']=="pending"?'Pending Review':'Publish')?></span></td>
               <td class="text-end">
                 <div class="buttons">
                   <a
-                    href="/post"
+                    href="/post?id=<?=$post['id']?>"
                     target="_blank"
-                    class="btn btn-primary btn-sm me-2 disabled"
+                    class="btn btn-primary btn-sm me-2 <?=($post['status']=="pending"?'disabled':'')?>"
                     ><i class="bi bi-eye"></i
                   ></a>
                   <a
-                    href="/manage-posts-edit"
+                    href="/manage-posts-edit?id=<?=$post['id']?>"
                     class="btn btn-secondary btn-sm me-2"
                     ><i class="bi bi-pencil"></i
                   ></a>
-                  <a href="#" class="btn btn-danger btn-sm"
-                    ><i class="bi bi-trash"></i
-                  ></a>
+                  <!--delete button start-->
+                  <!-- Button trigger modal -->
+                  <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#post-<?=$post['id']?>">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                  <!-- Modal -->
+                  <div class="modal fade" id="post-<?=$post['id']?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h1 class="modal-title fs-5" id="exampleModalLabel">Delete Post "<?=$post['title']?>"</h1>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                          </div>
+                          <div class="modal-body text-start">
+                            <form action="<?=$_SERVER['REQUEST_URI']?>" method="POST">
+                             <h6>Are you sure to delete post "<?=$post['title']?>" ?</h6> 
+                             <h6>Content :</h6>
+                             <p><?=$post['content']?></p>
+                              <input type="hidden" name="postid" value="<?=$post['id']?>">
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                              <button type="submit" class="btn btn-primary">Delete</button>
+                              <input type="hidden" name="csrf_token" value="<?=CSRF::getToken('delete_post_form')?>">
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <!--delete button end-->
                 </div>
               </td>
             </tr>
-            <tr>
-              <th scope="row">4</th>
-              <td>Post 4</td>
-              <td><span class="badge bg-success">Publish</span></td>
-              <td class="text-end">
-                <div class="buttons">
-                  <a
-                    href="/post"
-                    target="_blank"
-                    class="btn btn-primary btn-sm me-2"
-                    ><i class="bi bi-eye"></i
-                  ></a>
-                  <a
-                    href="/manage-posts-edit"
-                    class="btn btn-secondary btn-sm me-2"
-                    ><i class="bi bi-pencil"></i
-                  ></a>
-                  <a href="#" class="btn btn-danger btn-sm"
-                    ><i class="bi bi-trash"></i
-                  ></a>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <th scope="row">3</th>
-              <td>Post 3</td>
-              <td><span class="badge bg-success">Publish</span></td>
-              <td class="text-end">
-                <div class="buttons">
-                  <a
-                    href="/post"
-                    target="_blank"
-                    class="btn btn-primary btn-sm me-2"
-                    ><i class="bi bi-eye"></i
-                  ></a>
-                  <a
-                    href="/manage-posts-edit"
-                    class="btn btn-secondary btn-sm me-2"
-                    ><i class="bi bi-pencil"></i
-                  ></a>
-                  <a href="#" class="btn btn-danger btn-sm"
-                    ><i class="bi bi-trash"></i
-                  ></a>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <th scope="row">2</th>
-              <td>Post 2</td>
-              <td><span class="badge bg-success">Publish</span></td>
-              <td class="text-end">
-                <div class="buttons">
-                  <a
-                    href="/post"
-                    target="_blank"
-                    class="btn btn-primary btn-sm me-2"
-                    ><i class="bi bi-eye"></i
-                  ></a>
-                  <a
-                    href="/manage-posts-edit"
-                    class="btn btn-secondary btn-sm me-2"
-                    ><i class="bi bi-pencil"></i
-                  ></a>
-                  <a href="#" class="btn btn-danger btn-sm"
-                    ><i class="bi bi-trash"></i
-                  ></a>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <th scope="row">1</th>
-              <td>Post 1</td>
-              <td><span class="badge bg-success">Publish</span></td>
-              <td class="text-end">
-                <div class="buttons">
-                  <a
-                    href="/post"
-                    target="_blank"
-                    class="btn btn-primary btn-sm me-2"
-                    ><i class="bi bi-eye"></i
-                  ></a>
-                  <a
-                    href="/manage-posts-edit"
-                    class="btn btn-secondary btn-sm me-2"
-                    ><i class="bi bi-pencil"></i
-                  ></a>
-                  <a href="#" class="btn btn-danger btn-sm"
-                    ><i class="bi bi-trash"></i
-                  ></a>
-                </div>
-              </td>
-            </tr>
+            <?php endif; ?>
+            <?php endforeach; ?>
           </tbody>
         </table>
       </div>

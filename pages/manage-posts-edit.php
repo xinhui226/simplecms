@@ -1,5 +1,40 @@
 <?php
 
+if(!Authentication::whoCanAccess('user'))
+ {
+  header('Location: /login');
+  exit;
+ }
+ $post = Post::getPostById($_GET['id']);
+
+ CSRF::generateToken('edit_post_form');
+
+ if($_SERVER['REQUEST_METHOD']=="POST"){
+  $error = FormValidation::validate(
+    $_POST,
+    [
+      'title'=>'required',
+      'content'=>'required',
+      'status'=>'required',
+      'csrf_token'=>'edit_post_form_csrf_token'
+    ]
+  );
+
+  if(!$error)
+  {
+    Post::update(
+      $post['id'],
+      $_POST['title'],
+      $_POST['content'],
+      $_POST['status']
+    );
+
+    CSRF::removeToken('edit_post_form');
+
+    header('Location: /manage-posts');
+    exit;
+  }//end-if (!$error)
+ }
  
 require dirname(__DIR__)."/parts/header.php";
 
@@ -8,37 +43,38 @@ require dirname(__DIR__)."/parts/header.php";
       <div class="d-flex justify-content-between align-items-center mb-2">
         <h1 class="h1">Edit Post</h1>
       </div>
+      <?php require dirname(__DIR__)."/parts/error_box.php"?>
       <div class="card mb-2 p-4">
-        <form>
+        <form action="<?=$_SERVER['REQUEST_URI']?>" method="POST">
           <div class="mb-3">
             <label for="post-title" class="form-label">Title</label>
             <input
               type="text"
               class="form-control"
               id="post-title"
-              value="Post 1"
+              name="title"
+              value="<?=$post['title']?>"
             />
           </div>
           <div class="mb-3">
             <label for="post-content" class="form-label">Content</label>
-            <textarea class="form-control" id="post-content" rows="10">
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris purus risus, euismod ac tristique in, suscipit quis quam. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Vestibulum eget dapibus nibh. Pellentesque nec maximus odio. In pretium diam metus, sed suscipit neque porttitor vitae. Vestibulum a mattis eros. Integer fermentum arcu dolor, nec interdum sem tincidunt in. Cras malesuada a neque ut sodales. Nulla facilisi.
-
-Phasellus sodales arcu quis felis sollicitudin vehicula. Aliquam viverra sem ac bibendum tincidunt. Donec pulvinar id purus sagittis laoreet. Sed aliquet ac nisi vehicula rutrum. Proin non risus et erat rhoncus aliquet. Nam sollicitudin facilisis elit, a consequat arcu placerat eu. Pellentesque euismod et est quis faucibus.
-
-Curabitur sit amet nisl feugiat, efficitur nibh et, efficitur ex. Morbi nec fringilla nisl. Praesent blandit pellentesque urna, a tristique nunc lacinia quis. Integer semper cursus lectus, ac hendrerit mi volutpat sit amet. Etiam iaculis arcu eget augue sollicitudin, vel luctus lorem vulputate. Donec euismod eu dolor interdum efficitur. Vestibulum finibus, lectus sed condimentum ornare, velit nisi malesuada ligula, eget posuere augue metus et dolor. Nunc purus eros, ultricies in sapien quis, sagittis posuere risus.
-                        </textarea
+            <textarea class="form-control" id="post-content" name="content" rows="10"><?=$post['content']?></textarea
             >
           </div>
           <div class="mb-3">
             <label for="post-content" class="form-label">Status</label>
             <select class="form-control" id="post-status" name="status">
-              <option value="review">Pending for Review</option>
-              <option value="publish">Publish</option>
+              <?php if(Authentication::whoCanAccess('editor')) :?>
+              <option value="pending" <?=($post['status']=='pending'?'selected':'')?>>Pending for Review</option>
+              <option value="publish" <?=($post['status']=='publish'?'selected':'')?>>Publish</option>
+              <?php else :?>
+              <option value="<?=$post['status']?>" selected><?=($post['status']=='pending'?'Pending for Review':'Publish')?></option>
+              <?php endif;?>
             </select>
           </div>
           <div class="text-end">
             <button type="submit" class="btn btn-primary">Update</button>
+            <input type="hidden" name="csrf_token" value="<?=CSRF::getToken('edit_post_form')?>">
           </div>
         </form>
       </div>

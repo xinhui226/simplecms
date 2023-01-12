@@ -5,6 +5,7 @@ session_start();
 //require all classes and functions file
 require "includes/class-db.php";
 require "includes/class-user.php";
+require "includes/class-post.php";
 require "includes/class-authentication.php";
 require "includes/class-form-validation.php";
 require "includes/class-csrf.php";

@@ -27,6 +27,23 @@ class User{
             );
     }
 
+
+    /**
+     * add new user
+     */
+    public static function add($name,$email,$role,$password)
+    {
+        DB::connect()->insert(
+            'INSERT INTO users (name,email,role,password) VALUES (:name,:email,:role,:password)',
+            [
+                'name'=>$name,
+                'email'=>$email,
+                'role'=>$role,
+                'password'=>password_hash($password,PASSWORD_DEFAULT)
+            ]
+            );
+    }
+
     /**
      * update user data
      */
@@ -52,5 +69,18 @@ class User{
             $params
         );
 
+    }
+
+    /**
+     * delete user
+     */
+    public static function delete($id)
+    {
+        return DB::connect()->delete(
+            'DELETE FROM users WHERE id=:id',
+            [
+                'id'=>$id
+            ]
+        );
     }
 }

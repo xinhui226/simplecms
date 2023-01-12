@@ -6,6 +6,32 @@ if(!Authentication::whoCanAccess('admin'))
   header('Location: /dashboard');
   exit;
  }
+
+ //step 1
+ CSRF::generateToken('delete_user_form');
+
+ if($_SERVER['REQUEST_METHOD']=='POST'){
+
+  $error=FormValidation::validate(
+    $_POST,
+      [
+      'userid'=>'required',
+      'csrf_token'=>'delete_user_form_csrf_token'
+      ]
+  );
+
+  if(!$error)
+  {
+    User::delete(
+      $_POST['userid']
+    );
+
+    CSRF::removeToken('delete_user_form');
+
+    header('Location: /manage-users');
+    exit;
+  }
+ }
  
 require dirname(__DIR__)."/parts/header.php";
 
@@ -19,10 +45,12 @@ require dirname(__DIR__)."/parts/header.php";
           >
         </div>
       </div>
+      <?php require dirname(__DIR__)."/parts/error_box.php" ?>
       <div class="card mb-2 p-4">
         <table class="table">
           <thead>
             <tr>
+              <th scope="col">No.</th>
               <th scope="col">ID</th>
               <th scope="col">Name</th>
               <th scope="col">Email</th>
@@ -31,8 +59,9 @@ require dirname(__DIR__)."/parts/header.php";
             </tr>
           </thead>
           <tbody>
-          <?php foreach(User::getAllUsers() as $user) :?>
+          <?php foreach(User::getAllUsers() as $index=>$user) :?>
             <tr>
+              <th><?=$index+1?></th>
               <th scope="row"><?=$user['id']?></th>
               <td><?=$user['name']?></td>
               <td><?=$user['email']?></td>
@@ -47,57 +76,45 @@ require dirname(__DIR__)."/parts/header.php";
               </td>
               <td class="text-end">
                 <?php if($user['id']!=$_SESSION['user']['id'] && $user['role']!='admin'): ?>
-                <div class="buttons">
+                <div class="buttons d-flex">
                   <a
                     href="/manage-users-edit?id=<?=$user['id']?>"
                     class="btn btn-success btn-sm me-2"
                     ><i class="bi bi-pencil"></i
                   ></a>
-                  <a href="#" class="btn btn-danger btn-sm"
-                    ><i class="bi bi-trash"></i
-                  ></a>
+                  <!--delete button start-->
+                  <!-- Button trigger modal -->
+                  <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#user-<?=$user['id']?>">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                  <!-- Modal -->
+                  <div class="modal fade" id="user-<?=$user['id']?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h1 class="modal-title fs-5" id="exampleModalLabel">Delete User "<?=$user['name']?>"</h1>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                          </div>
+                          <div class="modal-body text-start">
+                            <form action="<?=$_SERVER['REQUEST_URI']?>" method="POST">
+                              Are you sure to delete user "<?=$user['name']?>" ?
+                              <input type="hidden" name="userid" value="<?=$user['id']?>">
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                              <button type="submit" class="btn btn-primary">Delete</button>
+                              <input type="hidden" name="csrf_token" value="<?=CSRF::getToken('delete_user_form')?>">
+                            </form>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  <!--delete button end-->
                 </div>
                 <?php endif; ?>
               </td>
             </tr>
             <?php endforeach; ?>
-            <!-- <tr>
-              <th scope="row">2</th>
-              <td>Jane</td>
-              <td>jane@gmail.com</td>
-              <td><span class="badge bg-info">Editor</span></td>
-              <td class="text-end">
-                <div class="buttons">
-                  <a
-                    href="/manage-users-edit"
-                    class="btn btn-success btn-sm me-2"
-                    ><i class="bi bi-pencil"></i
-                  ></a>
-                  <a href="#" class="btn btn-danger btn-sm"
-                    ><i class="bi bi-trash"></i
-                  ></a>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <th scope="row">1</th>
-              <td>John</td>
-              <td>john@gmail.com</td>
-              <td><span class="badge bg-primary">Admin</span></td>
-              <td class="text-end">
-                <div class="buttons">
-                  <a
-                    href="/manage-users-edit"
-                    class="btn btn-success btn-sm me-2"
-                    ><i class="bi bi-pencil"></i
-                  ></a>
-                  <a href="#" class="btn btn-danger btn-sm"
-                    ><i class="bi bi-trash"></i
-                  ></a>
-                </div>
-              </td>
-            </tr> -->
-
           </tbody>
         </table>
       </div>
