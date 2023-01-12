@@ -10,7 +10,7 @@ require dirname(__DIR__)."/parts/header.php";
       <div class="card mb-2">
         <div class="card-body">
           <h5 class="card-title"><?=$post['title']?></h5>
-          <p class="card-text"><?=$post['content']?></p>
+          <p class="card-text pe-5 text-truncate"><?=$post['content']?></p>
           <div class="text-end">
             <a href="/post?id=<?=$post['id']?>" class="btn btn-primary btn-sm">Read More</a>
           </div>
